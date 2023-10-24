@@ -17,13 +17,12 @@ double SV_MEANDER(double x)
 		return 1;
 	return 0;
 }
-typedef struct 
+typedef struct
 {
-	double* amps;
+	double *amps;
 	double period;
 	double dt;
 } SV_Signal;
-
 
 typedef struct
 {
@@ -39,7 +38,7 @@ SV_Complex SV_create_complex(double real, double imag)
 	return res;
 }
 
-SV_Signal SV_create_signal_from_amps(double* amps, double period, double dt)
+SV_Signal SV_create_signal_from_amps(double *amps, double period, double dt)
 {
 	SV_Signal res;
 	res.amps = amps;
@@ -48,11 +47,10 @@ SV_Signal SV_create_signal_from_amps(double* amps, double period, double dt)
 	return res;
 }
 
-
 SV_Signal SV_create_signal_from_function(double (*f)(double), double period, double dt)
 {
-	double* amps = (double*) malloc(((int)(period/ dt) + 1) * sizeof(double));
-	for (int i = 0; i < (int)(period / dt); i ++)
+	double *amps = (double *)malloc(((int)(period / dt) + 1) * sizeof(double));
+	for (int i = 0; i < (int)(period / dt); i++)
 	{
 		amps[i] = (*f)(i * dt);
 	}
@@ -65,7 +63,7 @@ SV_Signal SV_copy_signal(SV_Signal s)
 	SV_Signal res;
 	res.dt = s.dt;
 	res.period = s.period;
-	res.amps = (double*) malloc(((int)(s.period/ res.dt) + 1) * sizeof(double));
+	res.amps = (double *)malloc(((int)(s.period / res.dt) + 1) * sizeof(double));
 	for (int i = 0; i < (int)(s.period / s.dt); i++)
 	{
 		res.amps[i] = s.amps[i];
@@ -75,21 +73,20 @@ SV_Signal SV_copy_signal(SV_Signal s)
 
 SV_Complex SV_MULT_COMPLEX_COMPLEX(SV_Complex z1, SV_Complex z2)
 {
-	SV_Complex res = SV_create_complex( z1.real * z2.real - z1.imag * z2.imag, z1.real * z2.imag + z2.real * z1.imag);
+	SV_Complex res = SV_create_complex(z1.real * z2.real - z1.imag * z2.imag, z1.real * z2.imag + z2.real * z1.imag);
 	return res;
 }
 
 SV_Complex SV_MULT_DOUBLE_COMPLEX(double z1, SV_Complex z2)
 {
-	SV_Complex res = SV_create_complex( z1 * z2.real, z1 * z2.imag);
+	SV_Complex res = SV_create_complex(z1 * z2.real, z1 * z2.imag);
 	return res;
 }
 
 SV_Complex SV_MULT_COMPLEX_DOUBLE(SV_Complex z1, double z2)
 {
-	SV_Complex res = SV_create_complex( z2 * z1.real, z2 * z1.imag);
+	SV_Complex res = SV_create_complex(z2 * z1.real, z2 * z1.imag);
 	return res;
-
 }
 
 SV_Signal SV_MULT_SIGNAL_DOUBLE(SV_Signal s, double k)
@@ -108,15 +105,12 @@ SV_Signal SV_MULT_DOUBLE_SIGNAL(double k, SV_Signal s)
 	return res;
 }
 
-#define SV_Mult(X, Y) _Generic((X),\
-    SV_Complex:   _Generic((Y),\
-        SV_Complex:   SV_MULT_COMPLEX_COMPLEX,\
-        double: SV_MULT_COMPLEX_DOUBLE\
-    ),\
-    SV_Signal: _Generic((Y),\
-        double:   SV_MULT_SIGNAL_DOUBLE\
-    )\
-)(X, Y)
+#define SV_Mult(X, Y) _Generic((X),      \
+	SV_Complex: _Generic((Y),            \
+	SV_Complex: SV_MULT_COMPLEX_COMPLEX, \
+	double: SV_MULT_COMPLEX_DOUBLE),     \
+	SV_Signal: _Generic((Y),             \
+	double: SV_MULT_SIGNAL_DOUBLE))(X, Y)
 
 SV_Complex SV_Sum(SV_Complex z1, SV_Complex z2)
 {
@@ -131,68 +125,77 @@ double SV_Abs(SV_Complex z1)
 
 SV_Signal SV_expand_signal(SV_Signal s, double time)
 {
-    SV_Signal res;
-    res.dt = s.dt;
-    res.period = time;
-    int new_size = (int)(time / res.dt);
-    res.amps = (double*) malloc((new_size + 1) * sizeof(double));
-    for (int i = 0; i < new_size; i++)
-        res.amps[i] = s.amps[i % (int)(s.period / res.dt)];
-    
-    return res;
+	SV_Signal res;
+	res.dt = s.dt;
+	res.period = time;
+	int new_size = (int)(time / res.dt);
+	res.amps = (double *)malloc((new_size + 1) * sizeof(double));
+	for (int i = 0; i < new_size; i++)
+		res.amps[i] = s.amps[i % (int)(s.period / res.dt)];
+
+	return res;
 }
 
 void SV_print_signal(SV_Signal s)
 {
 	for (int i = 0; i < (int)(s.period / s.dt); i++)
-        printf("%.4f\n", s.amps[i]);
+		printf("%.4f\n", s.amps[i]);
 }
 
-SV_Signal SV_file_to_signal(char* path)
-{
-	SV_Signal res;
-	return res; // TODO
-}
-
-bool SV_save_signal_to_file(SV_Signal s, char* path)
+bool SV_save_signal_to_file(SV_Signal s, char *path)
 {
 	char dt[10], period[10];
 	sprintf(dt, "%f", s.dt);
 	sprintf(period, "%f", s.period);
 	FILE *fp = fopen(path, "w");
-    if(fp)
-    {
-        fputs(dt, fp);
-		fputs("\n", fp);
-		fputs(period, fp);
-		fputs("\n", fp);
-
-		for (int i = 0; i < (int)(s.period/s.dt); i++)
-		{
-			char value[10];
-			sprintf(value, "%f", s.amps[i]);
-			fputs(value, fp);
-			fputs(", ", fp);
-		}
-
-        fclose(fp);
-        printf("File has been written\n");
+	if (!fp)
+	{
+		printf("Failed to save signal in file %s!", path);
 		return 1;
-    }
-	else
-		printf("NO\n");
-	return 0;
+	}
+	fputs(dt, fp);
+	fputs("\n", fp);
+	fputs(period, fp);
+	fputs("\n", fp);
+
+	for (int i = 0; i < (int)(s.period / s.dt) - 1; i++)
+	{
+		char value[10];
+		sprintf(value, "%f", s.amps[i]);
+		fputs(value, fp);
+		fputs(", ", fp);
+	}
+
+	char value[10];
+	sprintf(value, "%f", s.amps[(int)(s.period / s.dt) - 1]);
+	fputs(value, fp);
+	fclose(fp);
+	printf("File has been written\n");
+	return 1;
+}
+
+bool SV_file_to_signal(char *path, SV_Signal *s)
+{
+	SV_Signal res;
+	FILE *mf = fopen(path, "r");
+	if (!mf)
+	{
+		printf("Error opening file %s! Maybe it does not exist", path);
+		return 1;
+	}
+
+	return 0; // TODO
 }
 
 SV_Signal SV_sin_signal(double dt)
 {
-	SV_Signal res = SV_create_signal_from_function(sin, 2*PI, dt);
+	SV_Signal res = SV_create_signal_from_function(sin, 2 * PI, dt);
 	return res;
 }
 
 SV_Signal SV_cos_signal(double dt)
 {
-	SV_Signal res = SV_create_signal_from_function(cos, 2*PI, dt);
+	SV_Signal res = SV_create_signal_from_function(cos, 2 * PI, dt);
 	return res;
 }
 
@@ -208,47 +211,48 @@ SV_Signal SV_meander_signal(double dt)
 	return res;
 }
 
-SV_Complex SV_exp (SV_Complex z)
+SV_Complex SV_exp(SV_Complex z)
 {
 	SV_Complex res = SV_create_complex(exp(z.real) * cos(z.imag), exp(z.real) * sin(z.imag));
 	return res;
 }
 
-SV_Complex* SV_forward_Fourier_transform (SV_Signal s)
+SV_Complex *SV_forward_Fourier_transform(SV_Signal s)
 {
-	int size = (int)(s.period/s.dt);
-	SV_Complex* res = (SV_Complex*) malloc(size * sizeof(SV_Complex));
+	int size = (int)(s.period / s.dt);
+	SV_Complex *res = (SV_Complex *)malloc(size * sizeof(SV_Complex));
 	for (int i = 0; i < size; i++)
 	{
 		SV_Complex sum = SV_create_complex(0.0, 0.0);
 		for (int j = 0; j < size; j++)
 		{
-			sum = SV_Sum(sum, SV_Mult(SV_exp(SV_create_complex(0.0, -2*PI*j*i / size)), s.amps[j]));
+			sum = SV_Sum(sum, SV_Mult(SV_exp(SV_create_complex(0.0, -2 * PI / size * j * i)), s.amps[j]));
 		}
 		res[i] = sum;
- 	}
+	}
 	return res;
 }
 
-SV_Signal SV_reverse_Fourier_transform (SV_Complex* F, size_t size, double period)
+SV_Signal SV_reverse_Fourier_transform(SV_Complex *F, size_t size, double period)
 {
 	SV_Signal res;
-	res.amps = (double*) malloc (size * sizeof(double));
+	res.amps = (double *)malloc(size * sizeof(double));
 	for (int i = 0; i < size; i++)
 	{
 		double sum = 0;
 		for (int j = 0; j < size; j++)
 		{
-			res.amps[i] = 1.0/size * SV_MULT_COMPLEX_COMPLEX(F[j], SV_exp(SV_create_complex(0, 2*PI/size * i * j))).real;
+			sum += 1.0 / size * SV_MULT_COMPLEX_COMPLEX(F[j], SV_exp(SV_create_complex(0, 2 * PI / size * i * j))).real;
 		}
+		res.amps[i] = sum;
 	}
-	res.dt = period/size;
+	res.dt = period / size;
 	res.period = period;
 	return res;
 }
-/* 
+/*
 	TODO:
 	1.) Error handling
 	2.) Signal visualisation
 	3.) A lot more...
-*/ 
+*/
