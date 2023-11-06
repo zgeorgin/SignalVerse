@@ -16,6 +16,6 @@ int main()
     SV_Signal transformed_example = SV_reverse_Fourier_transform(F, size, 2.0);
     SV_save_signal_to_file(transformed_example, "./test_Fourier.txt");
     SV_save_signal_to_file(example, "./test_func.txt");
-    SV_file_to_signal("./test_error.txt");
+    //SV_file_to_signal("./test_error.txt");
     return 0;
 }
