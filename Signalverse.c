@@ -218,7 +218,7 @@ SV_Signal SV_meander_signal(double dt)
 
 SV_Complex SV_exp(SV_Complex z)
 {
-	SV_Complex res = SV_create_complex(exp(z.real) * cos(z.imag), exp(z.real) * sin(z.imag));
+	SV_Complex res = {exp(z.real) * cos(z.imag), exp(z.real) * sin(z.imag)};
 	return res;
 }
 
